@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sagas.pion | Institutional Trading Systems</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* --- RESET & BASE --- */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #060913;
+            --bg-secondary: #0B1120;
+            --glass-bg: rgba(15, 23, 42, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --accent-cyan: #00E5FF;
+            --accent-green: #10B981;
+            --accent-gold: #F59E0B;
+            --accent-red: #EF4444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* --- UTILITIES --- */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+        .gradient-text {
+            background: linear-gradient(135deg, var(--accent-cyan) 0%, #3B82F6 50%, var(--accent-gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: rgba(0, 229, 255, 0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 40px rgba(0, 229, 255, 0.05);
+        }
+        .btn-primary {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 12px 28px;
+            background: linear-gradient(135deg, var(--accent-cyan), #0088cc);
+            color: #000; font-weight: 600; border-radius: 8px;
+            text-decoration: none; transition: all 0.3s ease;
+            border: none; cursor: pointer;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 229, 255, 0.3); }
+        
+        .badge {
+            display: inline-block; padding: 4px 12px;
+            background: rgba(0, 229, 255, 0.1);
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            border-radius: 20px; font-size: 0.75rem;
+            color: var(--accent-cyan); font-weight: 600;
+            letter-spacing: 0.05em; text-transform: uppercase;
+        }
+
+        /* --- BACKGROUND EFFECTS --- */
+        .bg-glow {
+            position: fixed; top: -20%; left: -10%; width: 50%; height: 50%;
+            background: radial-gradient(circle, rgba(0, 229, 255, 0.08) 0%, transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+        .bg-glow-2 {
+            position: fixed; bottom: -20%; right: -10%; width: 60%; height: 60%;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.05) 0%, transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* --- NAVBAR --- */
+        nav {
+            position: fixed; top: 0; width: 100%; z-index: 100;
+            background: rgba(6, 9, 19, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .nav-inner { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; }
+        .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .logo-text { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; }
+        .logo-text span { color: var(--accent-cyan); }
+        .nav-links { display: flex; gap: 32px; list-style: none; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--accent-cyan); }
+
+        /* --- HERO --- */
+        .hero {
+            min-height: 100vh; display: flex; align-items: center;
+            position: relative; z-index: 1; padding-top: 80px;
+        }
+        .hero-content { max-width: 800px; }
+        .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 800; line-height: 1.1; margin-bottom: 24px; letter-spacing: -0.03em; }
+        .hero p { font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 40px; max-width: 600px; }
+        .hero-stats { display: flex; gap: 48px; margin-top: 60px; }
+        .stat-item h3 { font-size: 2rem; font-weight: 700; color: var(--accent-cyan); font-family: 'JetBrains Mono', monospace; }
+        .stat-item p { font-size: 0.85rem; color: var(--text-secondary); margin: 0; }
+
+        /* --- SECTIONS --- */
+        section { padding: 100px 0; position: relative; z-index: 1; }
+        .section-header { text-align: center; margin-bottom: 64px; }
+        .section-header h2 { font-size: 2.5rem; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.02em; }
+        .section-header p { color: var(--text-secondary); max-width: 600px; margin: 0 auto; }
+
+        /* --- FEATURE GRID --- */
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+        .feature-card { padding: 32px; }
+        .feature-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 20px; font-size: 1.5rem;
+            background: rgba(0, 229, 255, 0.1); color: var(--accent-cyan);
+        }
+        .feature-card h3 { font-size: 1.25rem; margin-bottom: 12px; font-weight: 600; }
+        .feature-card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+        /* --- SESSION MODELS --- */
+        .models-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; }
+        .model-card { padding: 24px; border-left: 3px solid var(--accent-cyan); }
+        .model-card h4 { font-size: 1.1rem; margin-bottom: 8px; color: var(--text-primary); }
+        .model-card .time-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--accent-gold); margin-bottom: 12px; display: block;}
+        .model-card p { color: var(--text-secondary); font-size: 0.9rem; }
+
+        /* --- SHOWCASE / CHART PLACEHOLDER --- */
+        .chart-showcase {
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .chart-placeholder {
+            background: linear-gradient(135deg, rgba(0,229,255,0.05), rgba(245,158,11,0.05));
+            border: 2px dashed rgba(255,255,255,0.1);
+            border-radius: 12px;
+            height: 400px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            border-top: 1px solid var(--glass-border);
+            padding: 40px 0;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            position: relative; z-index: 1;
+        }
+        footer a { color: var(--accent-cyan); text-decoration: none; }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hero-stats { flex-direction: column; gap: 24px; }
+            .hero h1 { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Glows -->
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="container nav-inner">
+            <a href="#" class="logo">
+                <!-- sagas.pion Logo SVG -->
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="2" width="28" height="28" rx="8" fill="#0B1120" stroke="#00E5FF" stroke-width="1.5"/>
+                    <path d="M10 22L14 14L18 18L24 8" stroke="#00E5FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="24" cy="8" r="2" fill="#F59E0B"/>
+                </svg>
+                <span class="logo-text">sagas<span>.pion</span></span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#models">Models</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <span class="badge">Institutional Order Flow Systems</span>
+                <h1 style="margin-top: 20px;">Decode the Market with <span class="gradient-text">Precision & Narrative</span></h1>
+                <p>Advanced, rules-based ICT/SMC indicators designed for the modern Forex trader. Bridging the gap between higher-timeframe institutional bias and lower-timeframe execution.</p>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <a href="#overview" class="btn-primary">Explore Indicator 01 ↓</a>
+                </div>
+                
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <h3>4</h3>
+                        <p>Fixed 6H Sessions</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3>3</h3>
+                        <p>FVG Layers Tracked</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3>15m</h3>
+                        <p>CHoCH Entry Model</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Indicator 1 Overview -->
+    <section id="overview">
+        <div class="container">
+            <div class="section-header">
+                <span class="badge">Indicator 01</span>
+                <h2 style="margin-top: 16px;">6H Sessions AIO Package</h2>
+                <p>A comprehensive All-In-One Pine Script indicator built around fixed 6-hour session candles. Combines HTF structure, SMT divergence, FVGs, and 15m CHoCH into one unified narrative.</p>
+            </div>
+
+            <!-- Chart Showcase Placeholder -->
+            <div class="chart-showcase">
+                <p style="margin-bottom: 20px; color: var(--accent-cyan); font-weight: 600;">Live Chart Preview</p>
+                <div class="chart-placeholder">
+                    <!-- REPLACE THIS DIV WITH AN <img src="your-tradingview-screenshot.png"> -->
+                    [ Insert TradingView Screenshot of 6H Sessions & FVGs Here ]
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Features -->
+    <section id="features" style="background: var(--bg-secondary); border-top: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border);">
+        <div class="container">
+            <div class="section-header">
+                <h2>Core Engine & <span class="gradient-text">Confluence</span></h2>
+                <p>Every component is designed to filter noise and highlight high-probability institutional footprints.</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="glass-card feature-card">
+                    <div class="feature-icon">🕒</div>
+                    <h3>Fixed 6H Sessions</h3>
+                    <p>Locked quarterly blocks (Asia, London, NY AM, NY PM) providing a clean HTF session narrative view on your LTF charts.</p>
+                </div>
+                <div class="glass-card feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Smart Money Technique</h3>
+                    <p>Live 6H, 4H, and 1H SMT divergence detection against correlated pairs to confirm genuine smart-money movement.</p>
+                </div>
+                <div class="glass-card feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Multi-TF FVG Layers</h3>
+                    <p>Tracks Daily, 4H, 1H, and Session FVGs. Automatically marks First Inversions (IFVG) and double-inversion removals.</p>
+                </div>
+                <div class="glass-card feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>15m CHoCH Trigger</h3>
+                    <p>Rules-based entry model. The system "arms" on HTF events and waits for a precise 15m Change of Character to execute.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Session Models -->
+    <section id="models">
+        <div class="container">
+            <div class="section-header">
+                <h2>Classic Session <span class="gradient-text">Narratives</span></h2>
+                <p>The indicator automatically maps and supports the four primary ICT session trading models.</p>
+            </div>
+
+            <div class="models-grid">
+                <div class="glass-card model-card">
+                    <h4>London Protraction</h4>
+                    <span class="time-tag">00:00 – 06:00 NY</span>
+                    <p>London continues or expands the direction established in Asia. Highlights Asia FVGs attacked during the London open.</p>
+                </div>
+                <div class="glass-card model-card">
+                    <h4>New York Reversal</h4>
+                    <span class="time-tag">06:00 – 12:00 NY</span>
+                    <p>NY AM reverses the London direction. Uses 6H SMT divergence and session FVG attacks to arm the reversal.</p>
+                </div>
+                <div class="glass-card model-card">
+                    <h4>New York Continuation</h4>
+                    <span class="time-tag">06:00 – 12:00 NY</span>
+                    <p>NY expands the London direction. Confirmed by same-direction 6H SMT and respected unmitigated session FVGs.</p>
+                </div>
+                <div class="glass-card model-card">
+                    <h4>London Continuation</h4>
+                    <span class="time-tag">00:00 – 06:00 NY</span>
+                    <p>Focuses on the early expansion of London continuing Asia. Tracks IFVG formations and 6H SMT confirmations.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="container">
+            <p>&copy; 2026 <strong>sagas.pion</strong>. Pioneering Institutional Trading Systems.</p>
+            <p style="margin-top: 8px; font-size: 0.8rem;">Built for precision. Designed for the narrative.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
